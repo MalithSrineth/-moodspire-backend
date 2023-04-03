@@ -12,16 +12,27 @@ client_secret = '9e014b9d45cf4295bbc57cd364ecb9df'
 def createToken():
         spotifyy = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
                                                client_secret=client_secret,
-                                               redirect_uri="www.google.com",
+                                               redirect_uri="http://127.0.0.1:5000",
                                                scope='user-library-read playlist-modify-public user-read-private',
                                                cache_path=".spotifycache"))
         
         cached_token_info = spotifyy.auth_manager.get_cached_token()
-        return {"token":cached_token_info['access_token'], "spotify":spotifyy}
+        if cached_token_info:
+            # If cached token info exists, return the access token and Spotify object
+            return {"token": cached_token_info['access_token'], "spotify": spotifyy}
+        else:
+            # If cached token info does not exist, initiate the authorization flow and get the access token
+            auth_url = spotifyy.auth_manager.get_authorize_url()
+            print(f"Please go to this URL and authorize access: {auth_url}")
+            response = input("Enter the URL you were redirected to: ")
+            code = spotifyy.auth_manager.parse_response_code(response)
+            token_info = spotifyy.auth_manager.get_access_token(code)
+            spotifyy.auth_manager.cache_token(token_info)
+            return {"token": token_info['access_token'], "spotify": spotifyy}
 
 
 # Define list of moods
-moods = ['happy', 'sad', 'energetic', 'relaxed', 'romantic']
+moods = ['happy', 'sad', 'energetic', 'relaxed', 'romantic', 'angry']
 
 app = Flask(__name__)
 
