@@ -4,47 +4,62 @@ from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
 
-# client_id = 'e3f2d17f8e3b4238bcc0b7075efbaf31'
-# client_secret = '9e014b9d45cf4295bbc57cd364ecb9df'
+import cv2
+import tensorflow as tf
+import numpy as np
+import keras.utils as image
+import tensorflow_addons as tfa
 
-# Define list of moods
-# moods = ['happy', 'sad', 'energetic', 'relaxed', 'romantic']
+# Load the model
+with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
+    model = tf.keras.models.load_model("C:/Users/malit/Downloads/my_trained_model3.h5")
+
+# Create a VideoCapture object to capture images from the camera
+cap = cv2.VideoCapture(0)
+
+while True:
+    # Read a frame from the camera
+    ret, frame = cap.read()
+
+    # Display the frame
+    cv2.imshow('frame', frame)
+
+    # Wait for the user to press 'q' to quit or 'c' to capture a frame
+    key = cv2.waitKey(1)
+    if key == ord('q'):
+        break
+    elif key == ord('c'):
+        # Convert the captured frame to a format that can be used by the model
+        img = cv2.resize(frame, (300, 300))
+        img = image.img_to_array(img)
+        img = np.expand_dims(img, axis=0)
+        img = img / 255.0  # normalize the pixel values
+
+        # Classify the image using the trained model
+        classes = model.predict(img, batch_size=10)[0]
+        class_label = np.argmax(classes)
+
+        # Map the class label to the corresponding class name
+        if class_label == 0:
+            print("Person is Happy")
+            mood = "happy"
+        elif class_label == 1:
+            print("Person is Sad")
+            mood = "happy"
+        elif class_label == 2:
+            print("Person is Angry")
+            mood = "happy"
+        else:
+            print("Person is Neutral")
+            mood = "happy"
+
+# Release the resources
+cap.release()
+cv2.destroyAllWindows()
 
 # Ask user for mood input
-mood = input("What is your mood? ")
+## mood = input("What is your mood? ")
 headers = {'Content-Type': 'application/json'}
 response = requests.request("POST", 'http://localhost:5000/mood', headers=headers, data=json.dumps({'mood': mood}))
 print(response.json())
 
-# spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=client_id,
-#                                                client_secret=client_secret))
-
-# # Initialize the Spotipy client with SpotifyOAuth
-# spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
-#                                                client_secret=client_secret,
-#                                                redirect_uri="http://127.0.0.1:5000",
-#                                                scope='user-library-read playlist-modify-public user-read-private'))
-
-# # Search for tracks based on mood
-# if mood.lower() in moods:
-#     results = spotify.search(q='genre:' + mood.lower(), limit=50, offset=0, type='track')
-#     tracks = results['tracks']['items']
-
-#     # Extract track IDs for each track
-#     track_ids = [track['id'] for track in tracks]
-    
-#     # Create a new playlist on the user's account
-#     playlist_name = 'Playlist for ' + mood.lower() + ' mood'
-#     user_id = spotify.me()['id']
-#     playlist = spotify.user_playlist_create(user=user_id, name=playlist_name)
-    
-#     # Add the tracks to the new playlist
-#     spotify.user_playlist_add_tracks(user=user_id, playlist_id=playlist['id'], tracks=track_ids)
-    
-#     # Open the new playlist in the Spotify app
-#     playlist_url = playlist['external_urls']['spotify']
-#     print("Playlist created! Open it in Spotify with this link:")
-#     print(playlist_url)
-    
-# else:
-#     print("Invalid mood. Please choose from happy, sad, energetic, relaxed, or romantic.")
