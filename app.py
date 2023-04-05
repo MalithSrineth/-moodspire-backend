@@ -1,5 +1,8 @@
 import itertools
 import random
+from tkinter import Image
+import cv2
+import numpy as np
 import spotipy.util as util
 from flask import Flask, redirect, request, jsonify
 import spotipy
@@ -40,6 +43,91 @@ def createToken():
             return {"token": token_info['access_token'], "spotify": spotifyy}
 
 
+# @app.route("/predict", methods=["POST"])
+# def predict():
+#     # Get the image file from the request
+#     image_file = request.files["image"]
+
+#     # Read the image file
+#     image = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
+
+#     # Resize the image to (224, 224)
+#     image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
+
+#     # Convert the image to a numpy array
+#     image = np.asarray(image, dtype=np.float32).reshape(1, 224, 224, 3)
+
+#     # Normalize the image
+#     image = (image / 127.5) - 1
+
+#     # Make a prediction using the model
+#     prediction = model.predict(image)
+#     index = np.argmax(prediction)
+#     class_name = class_names[index].strip()
+#     confidence_score = float(prediction[0][index])
+
+#     # Return the prediction and confidence score as a JSON response
+#     return jsonify({"class": class_name, "confidence": confidence_score})
+
+
+
+
+
+def predict_mood(imagee):
+    import cv2
+    import tensorflow as tf
+    import numpy as np
+    import keras.utils as image
+    import tensorflow_addons as tfa
+    
+    # Load the model
+    with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
+        model = tf.keras.models.load_model("C:/Users/malit/Downloads/my_trained_model3.h5")
+
+    # img = cv2.resize(image, (300, 300))
+
+    # Read the image file
+    image = cv2.imdecode(np.frombuffer(imagee.read(), np.uint8), cv2.IMREAD_COLOR)
+
+    # Resize the image to (224, 224)
+    image = cv2.resize(image, (300, 300), interpolation=cv2.INTER_AREA)
+
+    # Convert the image to a numpy array
+    image = np.asarray(image, dtype=np.float32).reshape(300, 300, 3)
+
+    # image = image.img_to_array(image)
+    image = np.expand_dims(image, axis=0)
+
+    # Normalize the image
+    image = (image / 255.0)
+
+    
+    # imge = imge / 255.0  # normalize the pixel values
+
+    # Classify the image using the trained model
+    classes = model.predict(image)[0]
+
+    class_label = np.argmax(classes)
+
+    # Map the class label to the corresponding class name
+    if class_label == 0:
+        print("Person is Happy")
+        mood = "happy"
+        return mood
+    elif class_label == 1:
+        print("Person is Sad")
+        mood = "sad"
+        return mood
+    elif class_label == 2:
+        print("Person is Angry")
+        mood = "angry"
+        return mood
+    else:
+        print("Person is Neutral")
+        mood = "neutral"
+        return mood
+    
+
 # Define list of moods
 moods = ['happy', 'sad', 'energetic', 'relaxed', 'romantic', 'angry']
 
@@ -50,8 +138,8 @@ app = Flask(__name__)
 # ====================================
 @app.route('/mood', methods=['POST'])
 def mode():
-    # image = request.get_json()["image"] 
-    # predict_mood(image)
+    image = request.files["image"]
+    mood = predict_mood(image)
     # Get mood from request
 
     # token = util.prompt_for_user_token('Malith', 'user-library-read user-top-read playlist-modify-public user-follow-read user-read-private', client_id, client_secret, "http://127.0.0.1:5000")
@@ -62,7 +150,7 @@ def mode():
     #         sp = spotipy.Spotify(auth=token)
     #         return sp
         
-    mood = request.get_json()["mood"] # happy
+    # mood = request.get_json()["mood"] # happy
     response = createToken()
     # test_token = authenticate_spotify()
     accessToken = response["token"]
@@ -270,59 +358,5 @@ def post_example():
 if __name__ == '__main__':
     app.run()
 
-def predict_mood(image):
-    import cv2
-    import tensorflow as tf
-    import numpy as np
-    import keras.utils as image
-    import tensorflow_addons as tfa
-    
-    # Load the model
-    with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
-        model = tf.keras.models.load_model("C:/Users/malit/Downloads/my_trained_model3.h5")
-    
-    # Create a VideoCapture object to capture images from the camera
-    # cap = cv2.VideoCapture(0)
-    cap = image
-    
-    while True:
-        # Read a frame from the camera
-        ret, frame = cap.read()
-    
-        # Display the frame
-        cv2.imshow('frame', frame)
-    
-        # Wait for the user to press 'q' to quit or 'c' to capture a frame
-        key = cv2.waitKey(1)
-        if key == ord('q'):
-        
-            break
-        elif key == ord('c'):
-            # Convert the captured frame to a format that can be used by the model
-            img = cv2.resize(frame, (300, 300))
-            img = image.img_to_array(img)
-            img = np.expand_dims(img, axis=0)
-            img = img / 255.0  # normalize the pixel values
-    
-            # Classify the image using the trained model
-            classes = model.predict(img, batch_size=10)[0]
-            class_label = np.argmax(classes)
-    
-            # Map the class label to the corresponding class name
-            if class_label == 0:
-                print("Person is Happy")
-                mood = "happy"
-            elif class_label == 1:
-                print("Person is Sad")
-                mood = "happy"
-            elif class_label == 2:
-                print("Person is Angry")
-                mood = "happy"
-            else:
-                print("Person is Neutral")
-                mood = "happy"
-    
-    # Release the resources
-    cap.release()
-    cv2.destroyAllWindows()
+
     
