@@ -47,33 +47,6 @@ def createToken():
             return {"token": token_info['access_token'], "spotify": spotifyy}
 
 
-# @app.route("/predict", methods=["POST"])
-# def predict():
-#     # Get the image file from the request
-#     image_file = request.files["image"]
-
-#     # Read the image file
-#     image = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
-
-#     # Resize the image to (224, 224)
-#     image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
-
-#     # Convert the image to a numpy array
-#     image = np.asarray(image, dtype=np.float32).reshape(1, 224, 224, 3)
-
-#     # Normalize the image
-#     image = (image / 127.5) - 1
-
-#     # Make a prediction using the model
-#     prediction = model.predict(image)
-#     index = np.argmax(prediction)
-#     class_name = class_names[index].strip()
-#     confidence_score = float(prediction[0][index])
-
-#     # Return the prediction and confidence score as a JSON response
-#     return jsonify({"class": class_name, "confidence": confidence_score})
-
-
 # Load the model
 with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
     model = tf.keras.models.load_model("my_trained_model3.h5")
@@ -97,8 +70,6 @@ def predict_mood(imagee):
     # Normalize the image
     image = (image / 255.0)
 
-    
-    # imge = imge / 255.0  # normalize the pixel values
 
     # Classify the image using the trained model
     classes = model.predict(image)[0]
@@ -125,7 +96,7 @@ def predict_mood(imagee):
     
 
 # Define list of moods
-moods = ['happy', 'sad', 'energetic', 'neutral', 'romantic', 'angry']
+moods = ['happy', 'sad', 'neutral', 'angry']
 
 app = Flask(__name__)
 
@@ -176,8 +147,6 @@ def mode():
                 top_tracks_uri.append(track_data['uri'])
 
         return top_tracks_uri
-    
-
     
     
     def select_tracks_for_playlist(spotifyy, top_tracks_uri):
@@ -249,15 +218,12 @@ def mode():
         return selected_tracks_uri
     
     def create_playlist(spotifyy, selected_tracks_uri):
-        print(selected_tracks_uri)
-    
         playlist_name = 'Playlist for ' + mood.lower() + ' mood'
         user_all_data = spotifyy.current_user()
         user_id = user_all_data['id']
         playlist = spotifyy.user_playlist_create(user=user_id, name=playlist_name)
         
         spotifyy.user_playlist_add_tracks(user=user_id, playlist_id=playlist['id'], tracks=selected_tracks_uri[0:30])
-        print('hola2')
         playlist_url = playlist['external_urls']['spotify']
         print("Playlist created! Open it in Spotify with this link:")
         
