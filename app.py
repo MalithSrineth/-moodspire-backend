@@ -16,11 +16,6 @@ from flask_cors import CORS
 client_id = 'e3f2d17f8e3b4238bcc0b7075efbaf31'
 client_secret = '9e014b9d45cf4295bbc57cd364ecb9df'
 
-# client_id = '03746619a3994ac7be5411d6a001355e'
-# client_secret = '97657b3eb1694e78b2d9693fe30447e6'pip
-
-
-
 # ===============================================
 # Initialize the Spotipy client with SpotifyOAuth
 # ===============================================
@@ -48,8 +43,10 @@ def createToken():
 
 
 # Load the model
-with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
-    model = tf.keras.models.load_model("my_trained_model3.h5")
+# with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
+#     model = tf.keras.models.load_model("my_trained_model3.h5")
+
+model = tf.keras.models.load_model("finetuned_model_1.h5")
 
 def predict_mood(imagee):
     
@@ -59,10 +56,10 @@ def predict_mood(imagee):
     image = cv2.imdecode(np.frombuffer(imagee.read(), np.uint8), cv2.IMREAD_COLOR)
 
     # Resize the image to (224, 224)
-    image = cv2.resize(image, (300, 300), interpolation=cv2.INTER_AREA)
+    image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
 
     # Convert the image to a numpy array
-    image = np.asarray(image, dtype=np.float32).reshape(300, 300, 3)
+    image = np.asarray(image, dtype=np.float32).reshape(224, 224, 3)
 
     # image = image.img_to_array(image)
     image = np.expand_dims(image, axis=0)
