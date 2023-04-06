@@ -1,19 +1,23 @@
-import itertools
+
 import random
-from tkinter import Image
-import cv2
-import numpy as np
-import spotipy.util as util
 from flask import Flask, redirect, request, jsonify
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
+import cv2
+import tensorflow as tf
+import numpy as np
+import keras.utils as image
+import tensorflow_addons as tfa
+from flask import Flask
+from flask_cors import CORS
+
+
 
 client_id = 'e3f2d17f8e3b4238bcc0b7075efbaf31'
 client_secret = '9e014b9d45cf4295bbc57cd364ecb9df'
 
 # client_id = '03746619a3994ac7be5411d6a001355e'
-# client_secret = '97657b3eb1694e78b2d9693fe30447e6'
+# client_secret = '97657b3eb1694e78b2d9693fe30447e6'pip
 
 
 
@@ -70,20 +74,12 @@ def createToken():
 #     return jsonify({"class": class_name, "confidence": confidence_score})
 
 
-
-
+# Load the model
+with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
+    model = tf.keras.models.load_model("my_trained_model3.h5")
 
 def predict_mood(imagee):
-    import cv2
-    import tensorflow as tf
-    import numpy as np
-    import keras.utils as image
-    import tensorflow_addons as tfa
     
-    # Load the model
-    with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
-        model = tf.keras.models.load_model("C:/Users/malit/Downloads/my_trained_model3.h5")
-
     # img = cv2.resize(image, (300, 300))
 
     # Read the image file
@@ -265,7 +261,8 @@ def mode():
         playlist_url = playlist['external_urls']['spotify']
         print("Playlist created! Open it in Spotify with this link:")
         
-        return playlist_url
+        # print(playlist['uri'])
+        return playlist['uri']
         
     #===========================================
 
@@ -274,8 +271,8 @@ def mode():
         top_artists_uri = top_artists_collection(spotifyy)
         top_tracks_uri = top_tracks_collection(spotifyy, top_artists_uri)
         selected_tracks_uri = select_tracks_for_playlist(spotifyy, top_tracks_uri)
-        playlist_url = create_playlist(spotifyy, selected_tracks_uri)
-        return jsonify({'result': playlist_url})
+        playlist_uri = create_playlist(spotifyy, selected_tracks_uri)
+        return jsonify({'result': playlist_uri})
 
     else:
         print("Invalid mood. Please choose from happy, sad, energetic, relaxed, or romantic.")
@@ -300,6 +297,7 @@ def post_example():
 # Server Start
 # ============
 if __name__ == '__main__':
+    CORS(app)
     app.run()
 
 
