@@ -42,7 +42,7 @@ def createToken():
             return {"token": token_info['access_token'], "spotify": spotifyy}
 
 
-# Load the model
+# Load the models
 # with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
 #     model = tf.keras.models.load_model("my_trained_model3.h5")
 
