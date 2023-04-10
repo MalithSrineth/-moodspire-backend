@@ -46,7 +46,7 @@ def createToken():
 # with tf.keras.utils.custom_object_scope({'CohenKappa': tfa.metrics.CohenKappa(num_classes=4)}):
 #     model = tf.keras.models.load_model("my_trained_model3.h5")
 
-model = tf.keras.models.load_model("finetuned_model_1.h5")
+model = tf.keras.models.load_model("my_trained_model3.h5")
 
 def predict_mood(imagee):
     
@@ -55,11 +55,11 @@ def predict_mood(imagee):
     # Read the image file
     image = cv2.imdecode(np.frombuffer(imagee.read(), np.uint8), cv2.IMREAD_COLOR)
 
-    # Resize the image to (224, 224)
-    image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
+    # Resize the image to (224, 224)dir
+    image = cv2.resize(image, (300, 300), interpolation=cv2.INTER_AREA)
 
     # Convert the image to a numpy array
-    image = np.asarray(image, dtype=np.float32).reshape(224, 224, 3)
+    image = np.asarray(image, dtype=np.float32).reshape(300, 300, 3)
 
     # image = image.img_to_array(image)
     image = np.expand_dims(image, axis=0)
